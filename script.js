@@ -1,36 +1,59 @@
-const inputBox = document.getElementById('input-box');
-const listContainer = document.getElementById('list-container');
+const inputBox = document.getElementById("input-box");
+const listContainer = document.getElementById("list-container");
 
 function addTask() {
-    if (inputBox.value === '') {
-        alert("You must write something!");
-    } else {
-        let li = document.createElement("li");
-        li.innerHTML = inputBox.value;
-        listContainer.appendChild(li);
-        let span = document.createElement("span");
-        span.innerHTML = "\u00d7";
-        li.appendChild(span);
-    }
-    inputBox.value = "";
-    saveData();
-}  
+    let taskText = inputBox.value.trim(); // Trim spaces
 
-listContainer.addEventListener('click', function(e) {
+    if (taskText === "") {
+        alert("You must write something!");
+        return;
+    }
+
+    // Create list item
+    let li = document.createElement("li");
+    li.textContent = taskText;
+
+    // Create delete button
+    let span = document.createElement("span");
+    span.innerHTML = "\u00d7"; // "×" delete icon
+    li.appendChild(span);
+
+    listContainer.appendChild(li);
+    inputBox.value = ""; // Clear input field
+
+    saveData();
+}
+
+// Event delegation for dynamic elements
+listContainer.addEventListener("click", function (e) {
     if (e.target.tagName === "LI") {
         e.target.classList.toggle("checked");
-        saveData(); 
     } else if (e.target.tagName === "SPAN") {
         e.target.parentElement.remove();
-        saveData();
     }
-}, false); 
+    saveData();
+}, false);
 
 function saveData() {
-    localStorage.setItem("data", listContainer.innerHTML);
+    localStorage.setItem("tasks", listContainer.innerHTML);
 }
 
-function showTask() {
-    listContainer.innerHTML = localStorage.getItem("data");
+function showTasks() {
+    let savedTasks = localStorage.getItem("tasks");
+    if (savedTasks) {
+        listContainer.innerHTML = savedTasks;
+        attachDeleteListeners(); // Ensure delete buttons work after reload
+    }
 }
-showTask();
+
+function attachDeleteListeners() {
+    document.querySelectorAll("li span").forEach(span => {
+        span.addEventListener("click", function () {
+            this.parentElement.remove();
+            saveData();
+        });
+    });
+}
+
+// Load saved tasks on page load
+showTasks();
